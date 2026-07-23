@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-paper text-ink;
+  font-family: "IBM Plex Sans", sans-serif;
+}
+
+::selection {
+  background-color: rgba(23, 135, 107, 0.25);
+}
+
+:focus-visible {
+  outline: 2px solid #17876b;
+  outline-offset: 2px;
+}
+
+/* === Keyframes (ported from Lovable's Tailwind v4 design system) === */
+@keyframes sn-fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes sn-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes sn-chip-pop {
+  0%   { opacity: 0; transform: scale(0.6); }
+  60%  { opacity: 1; transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+@keyframes sn-gradient-sweep {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+@keyframes sn-orbit {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes sn-pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(201, 162, 75, 0.5); }
+  70%  { box-shadow: 0 0 0 12px rgba(201, 162, 75, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(201, 162, 75, 0); }
+}
+@keyframes sn-shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position: 200% 0; }
+}
+@keyframes sn-blob {
+  0%, 100% { transform: translate(0,0) scale(1); }
+  33% { transform: translate(30px, -20px) scale(1.05); }
+  66% { transform: translate(-20px, 30px) scale(0.95); }
+}
+@keyframes sn-check-draw {
+  from { stroke-dashoffset: 24; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes sn-border-flow {
+  to { background-position: 200% 0; }
+}
+
+/* === Utility classes (v3-compatible plain CSS, ported from @utility rules) === */
+.sn-animate-fade-up {
+  animation: sn-fade-up 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.sn-animate-fade-in {
+  animation: sn-fade-in 0.6s ease-out both;
+}
+.sn-animate-chip {
+  animation: sn-chip-pop 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.sn-animate-blob {
+  animation: sn-blob 18s ease-in-out infinite;
+}
+.sn-animate-orbit {
+  animation: sn-orbit 40s linear infinite;
+}
+.sn-animate-orbit-reverse {
+  animation: sn-orbit 55s linear infinite reverse;
+}
+.sn-animate-pulse-ring {
+  animation: sn-pulse-ring 2.2s ease-out infinite;
+}
+.sn-gradient-text {
+  background: linear-gradient(90deg, #0E4F3F 0%, #17876B 35%, #C9A24B 65%, #0E4F3F 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: sn-gradient-sweep 8s linear infinite;
+}
+.sn-shimmer-bg {
+  background: linear-gradient(90deg, transparent 0%, rgba(23,135,107,0.15) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: sn-shimmer 1.8s linear infinite;
+}
+.sn-tilt-card {
+  transform-style: preserve-3d;
+  transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.35s ease;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
