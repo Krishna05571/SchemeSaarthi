@@ -1,0 +1,48 @@
+=== AI-Powered Government Scheme & Compliance Navigator: Run Commands ===
+
+Ensure you have Python (version 3.10+) and Node.js installed on your system.
+These commands run the project globally without creating a virtual environment.
+
+--- 1. Install Dependencies (Run once from project root) ---
+
+# Install Python packages globally
+pip install -r requirements.txt
+
+# Install frontend node packages
+cd frontend
+npm install
+cd ..
+
+
+--- 2. Start the Backend (Terminal 1) ---
+
+Choose the commands corresponding to your VS Code terminal shell type:
+
+PowerShell (Default on Windows):
+    $env:GEMINI_API_KEY="your-gemini-api-key-here"
+    cd backend
+    python -m uvicorn main:app --reload
+
+Command Prompt (cmd):
+    set GEMINI_API_KEY=your-gemini-api-key-here
+    cd backend
+    python -m uvicorn main:app --reload
+
+Bash / macOS / Linux:
+    export GEMINI_API_KEY="your-gemini-api-key-here"
+    cd backend
+    python -m uvicorn main:app --reload
+
+
+--- 3. Start the Frontend (Terminal 2) ---
+
+Open a new terminal session, then run:
+    cd frontend
+    npm run dev
+
+
+--- 4. Accessing the Application ---
+
+Frontend App:   http://localhost:5173/
+Backend API:    http://127.0.0.1:8000/
+Backend Docs:   http://127.0.0.1:8000/docs
