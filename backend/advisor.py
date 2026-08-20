@@ -76,10 +76,13 @@ def retrieve_filtered(genai_client, chroma_collection, query_text: str, eligible
 
 
 def synthesize_recommendation(
-    genai_client, question: str | None, eligible_matches: list[dict], retrieved_chunks: list[dict]
+    genai_client, question: str | None, eligible_matches: list[dict], retrieved_chunks: list[dict], language: str = "en"
 ) -> str:
     """Ask Gemini to produce one unified, grounded recommendation or answer."""
     if not eligible_matches:
+        if language == "hi":
+            return ("आपकी प्रोफ़ाइल के आधार पर, हमारे वर्तमान डेटाबेस में कोई योजना मेल नहीं खाई। "
+                    "कृपया अपनी प्रोफ़ाइल विवरण समायोजित करने का प्रयास करें।")
         return ("Based on your profile, no schemes in our current database matched. "
                  "Try adjusting your profile details, or check back as more schemes are added.")
 
@@ -91,8 +94,12 @@ def synthesize_recommendation(
                if retrieved_chunks else "No additional scheme text retrieved.")
     user_question = question or "Give me a prioritized recommendation of which scheme(s) to pursue first and why."
 
+    lang_instruction = ""
+    if language == "hi":
+        lang_instruction = "\n- Provide your full recommendation in fluent, professional Hindi (Devanagari script). Keep scheme names clearly identifiable."
+
     prompt = (
-        f"{ADVISOR_SYSTEM_INSTRUCTION}\n\n"
+        f"{ADVISOR_SYSTEM_INSTRUCTION}{lang_instruction}\n\n"
         f"ELIGIBLE SCHEMES:\n{scheme_summary}\n\n"
         f"CONTEXT:\n{context}\n\n"
         f"USER QUESTION: {user_question}\n\nANSWER:"
@@ -113,15 +120,28 @@ def get_advisor_response(
     genai_client,
     chroma_collection,
     check_match_fn,
+    language: str = "en",
 ) -> dict:
     """Main orchestration entrypoint: rule engine -> filtered retrieval -> Gemini synthesis."""
     eligible_matches = get_eligible_matches(profile, schemes, check_match_fn)
     eligible_slugs = [m["slug"] for m in eligible_matches]
 
+    if not genai_client:
+        rec = (
+            "एआई व्यक्तिगत अनुशंसा और चैट का उपयोग करने के लिए कृपया GEMINI_API_KEY सेट करें। नीचे आपकी पात्र योजनाएं सूचीबद्ध हैं।"
+            if language == "hi"
+            else "Set GEMINI_API_KEY to enable AI personalized recommendations and chat. Your eligible schemes are listed below."
+        )
+        return {
+            "eligible_schemes": eligible_matches,
+            "recommendation": rec,
+            "sources": [],
+        }
+
     retrieval_query = question or "General overview of eligibility, benefits, and application steps."
     retrieved_chunks = retrieve_filtered(genai_client, chroma_collection, retrieval_query, eligible_slugs)
 
-    recommendation = synthesize_recommendation(genai_client, question, eligible_matches, retrieved_chunks)
+    recommendation = synthesize_recommendation(genai_client, question, eligible_matches, retrieved_chunks, language=language)
 
     return {
         "eligible_schemes": eligible_matches,

@@ -4,21 +4,23 @@ import EvidenceChip from "./EvidenceChip.jsx";
 import MatchStrengthRing from "./MatchStrengthRing.jsx";
 import ChatWidget from "./ChatWidget.jsx";
 import { getSchemeDetail } from "../api.js";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 const mdClass =
   "prose prose-sm max-w-none text-ink prose-headings:font-display prose-headings:text-ink prose-p:text-ink/85 prose-p:leading-relaxed prose-p:mb-4 prose-a:text-emerald prose-strong:text-jade prose-li:my-1";
 
 const SECTION_ICONS = {
-  "About this scheme": "◆",
-  Benefits: "★",
-  Eligibility: "✓",
-  "Documents required": "▤",
-  "Application process": "→",
+  about: "◆",
+  benefits: "★",
+  eligibility: "✓",
+  documents: "▤",
+  application: "→",
 };
 
 // Collapses long text to a preview with a fade-out + "Read more" toggle.
 // Nothing is removed — full text is always one click away.
 function CollapsibleText({ children, previewChars = 320 }) {
+  const { t } = useLanguage();
   const [expanded, setExpanded] = useState(false);
   const text = typeof children === "string" ? children : "";
   const isLong = text.length > previewChars;
@@ -44,18 +46,18 @@ function CollapsibleText({ children, previewChars = 320 }) {
         onClick={() => setExpanded((e) => !e)}
         className="mt-2 text-xs font-semibold uppercase tracking-wider text-emerald hover:text-jade"
       >
-        {expanded ? "Show less ↑" : "Read full details ↓"}
+        {expanded ? t("show_less") : t("read_full")}
       </button>
     </div>
   );
 }
 
-function Section({ title, children }) {
+function Section({ iconKey, title, children }) {
   return (
     <section className="mb-8 max-w-[640px]">
       <div className="mb-3 flex items-center gap-2.5">
         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-mist text-xs text-jade">
-          {SECTION_ICONS[title] || "•"}
+          {SECTION_ICONS[iconKey] || "•"}
         </span>
         <h3 className="font-display text-base text-jade">{title}</h3>
       </div>
@@ -65,6 +67,7 @@ function Section({ title, children }) {
 }
 
 export default function SchemeDetail({ scheme, onBack }) {
+  const { t, translateCriteria } = useLanguage();
   const [full, setFull] = useState(scheme);
   const [loading, setLoading] = useState(false);
 
@@ -97,7 +100,7 @@ export default function SchemeDetail({ scheme, onBack }) {
         className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-emerald hover:text-jade"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-        Back to results
+        {t("btn_back")}
       </button>
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_340px]">
@@ -120,17 +123,29 @@ export default function SchemeDetail({ scheme, onBack }) {
 
           {loading && (
             <div className="mb-8 max-w-[640px] rounded-xl bg-mist p-4 text-sm text-muted sn-shimmer-bg">
-              Loading full scheme details…
+              {t("loading_details")}
             </div>
           )}
 
-          {s.benefits_md && <Section title="Benefits">{s.benefits_md}</Section>}
-          {s.eligibility_md && <Section title="Eligibility">{s.eligibility_md}</Section>}
+          {s.benefits_md && (
+            <Section iconKey="benefits" title={t("sec_benefits")}>
+              {s.benefits_md}
+            </Section>
+          )}
+          {s.eligibility_md && (
+            <Section iconKey="eligibility" title={t("sec_eligibility")}>
+              {s.eligibility_md}
+            </Section>
+          )}
           {s.documents_required_md && (
-            <Section title="Documents required">{s.documents_required_md}</Section>
+            <Section iconKey="documents" title={t("sec_documents")}>
+              {s.documents_required_md}
+            </Section>
           )}
           {applicationText && (
-            <Section title="Application process">{applicationText}</Section>
+            <Section iconKey="application" title={t("sec_application")}>
+              {applicationText}
+            </Section>
           )}
         </div>
 
@@ -139,7 +154,7 @@ export default function SchemeDetail({ scheme, onBack }) {
           <div className="overflow-hidden rounded-2xl border border-ink/6 bg-card shadow-[0_15px_50px_-25px_rgba(11,31,28,0.35)]">
             <div className="bg-gradient-to-br from-jade to-emerald p-5 text-paper">
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-mint/90">
-                Your match
+                {t("sidebar_match")}
               </div>
               <div className="mt-3">
                 <MatchStrengthRing score={s.match_strength} size={72} />
@@ -149,14 +164,16 @@ export default function SchemeDetail({ scheme, onBack }) {
             <div className="p-5">
               <div className="mb-4">
                 <div className="mb-2 font-mono text-[10px] uppercase tracking-wider text-muted">
-                  Confirmed
+                  {t("sidebar_confirmed")}
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {reasons.length === 0 && (
-                    <span className="text-xs text-muted">Nothing confirmed yet.</span>
+                    <span className="text-xs text-muted">{t("nothing_confirmed")}</span>
                   )}
                   {reasons.map((r, i) => (
-                    <EvidenceChip key={i} kind="check" delay={i * 60}>{r}</EvidenceChip>
+                    <EvidenceChip key={i} kind="check" delay={i * 60}>
+                      {translateCriteria(r)}
+                    </EvidenceChip>
                   ))}
                 </div>
               </div>
@@ -164,11 +181,13 @@ export default function SchemeDetail({ scheme, onBack }) {
               {unverified.length > 0 && (
                 <div className="mb-4">
                   <div className="mb-2 font-mono text-[10px] uppercase tracking-wider text-muted">
-                    Missing info · to verify
+                    {t("sidebar_unverified")}
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {unverified.map((r, i) => (
-                      <EvidenceChip key={i} kind="unknown" delay={i * 60}>{r}</EvidenceChip>
+                      <EvidenceChip key={i} kind="unknown" delay={i * 60}>
+                        {translateCriteria(r)}
+                      </EvidenceChip>
                     ))}
                   </div>
                 </div>
@@ -177,7 +196,7 @@ export default function SchemeDetail({ scheme, onBack }) {
               {registrations.length > 0 && (
                 <div className="mb-4">
                   <div className="mb-2 font-mono text-[10px] uppercase tracking-wider text-muted">
-                    Registrations required
+                    {t("sidebar_registrations")}
                   </div>
                   <ul className="space-y-1 text-sm text-ink">
                     {registrations.map((r, i) => (
@@ -193,7 +212,7 @@ export default function SchemeDetail({ scheme, onBack }) {
               {s.other_conditions && (
                 <div className="mb-4 rounded-xl bg-sand p-3 text-xs text-ink/80">
                   <div className="mb-1 font-mono text-[10px] uppercase tracking-wider text-gold">
-                    Other conditions
+                    {t("sidebar_other_conditions")}
                   </div>
                   {s.other_conditions}
                 </div>
@@ -207,7 +226,7 @@ export default function SchemeDetail({ scheme, onBack }) {
         <ChatWidget
           slug={s.slug}
           persona={s.persona}
-          title={`Ask about ${s.scheme_name}`}
+          title={t("ask_about_scheme", { name: s.scheme_name })}
           inline
         />
       </div>

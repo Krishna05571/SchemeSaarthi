@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { askChat } from "../api.js";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 function TypingShimmer() {
+  const { t } = useLanguage();
   return (
     <div className="flex items-center gap-1.5 py-1">
       {[0, 1, 2].map((i) => (
@@ -15,7 +17,7 @@ function TypingShimmer() {
         />
       ))}
       <span className="ml-2 font-mono text-[10px] uppercase tracking-wider text-muted">
-        thinking
+        {t("thinking")}
       </span>
     </div>
   );
@@ -34,7 +36,7 @@ function Bubble({ role, children }) {
   return (
     <div className="flex gap-2">
       <span className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-jade to-emerald font-mono text-[10px] text-mint">
-        SN
+        SS
       </span>
       <div className="min-w-0 flex-1 rounded-2xl rounded-tl-sm bg-mist px-4 py-2.5 text-sm text-ink">
         {children}
@@ -43,12 +45,15 @@ function Bubble({ role, children }) {
   );
 }
 
-export default function ChatWidget({ title = "Ask a question", slug, persona, inline = false }) {
+export default function ChatWidget({ title, slug, persona, inline = false }) {
+  const { t, language } = useLanguage();
   const [open, setOpen] = useState(inline);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef(null);
+
+  const displayTitle = title || t("chat_default_title");
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -62,7 +67,7 @@ export default function ChatWidget({ title = "Ask a question", slug, persona, in
     setMessages((m) => [...m, { role: "user", content: q }]);
     setLoading(true);
     try {
-      const res = await askChat(q, { slug, persona });
+      const res = await askChat(q, { slug, persona, language });
       setMessages((m) => [...m, { role: "assistant", content: res.answer, sources: res.sources }]);
     } catch (err) {
       setMessages((m) => [...m, { role: "assistant", content: `⚠ ${err.message}`, error: true }]);
@@ -81,9 +86,9 @@ export default function ChatWidget({ title = "Ask a question", slug, persona, in
       <div className="flex items-center justify-between border-b border-ink/6 bg-gradient-to-r from-jade to-emerald px-4 py-3 text-paper">
         <div>
           <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-mint/90">
-            Scheme Chat
+            {t("chat_badge")}
           </div>
-          <div className="font-display text-sm">{title}</div>
+          <div className="font-display text-sm">{displayTitle}</div>
         </div>
         {!inline && (
           <button onClick={() => setOpen(false)} className="text-mint hover:text-paper" aria-label="Close">
@@ -95,8 +100,7 @@ export default function ChatWidget({ title = "Ask a question", slug, persona, in
       <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
         {messages.length === 0 && !loading && (
           <div className="rounded-xl bg-mist p-3 text-xs text-muted">
-            Ask anything — eligibility questions, benefit amounts, application steps.
-            Answers are grounded in the official scheme text.
+            {t("chat_intro")}
           </div>
         )}
         {messages.map((m, i) => (
@@ -111,7 +115,7 @@ export default function ChatWidget({ title = "Ask a question", slug, persona, in
                         <a key={k} href={typeof s === "string" ? s : s.url} target="_blank" rel="noreferrer"
                           className="rounded-full border border-ink/10 bg-paper px-2 py-0.5 text-[10px] font-medium text-emerald hover:border-emerald"
                         >
-                          {typeof s === "string" ? "source" : (s.title || "source")}
+                          {typeof s === "string" ? t("source_tag") : (s.title || t("source_tag"))}
                         </a>
                       ))}
                     </div>
@@ -128,7 +132,7 @@ export default function ChatWidget({ title = "Ask a question", slug, persona, in
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask about eligibility, benefits, process…"
+          placeholder={t("chat_placeholder")}
           className="flex-1 rounded-xl border border-ink/10 bg-paper px-3 py-2 text-sm text-ink placeholder:text-muted/70 focus:border-emerald focus:outline-none focus:ring-2 focus:ring-emerald/20"
         />
         <button
@@ -156,7 +160,7 @@ export default function ChatWidget({ title = "Ask a question", slug, persona, in
           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-emerald to-gold">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z" stroke="#0B1F1C" strokeWidth="2" strokeLinejoin="round"/></svg>
           </span>
-          Ask about schemes
+          {t("btn_ask_schemes")}
         </button>
       )}
     </>

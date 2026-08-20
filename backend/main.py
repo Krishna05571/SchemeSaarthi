@@ -68,9 +68,10 @@ def startup():
     global schemes, genai_client, chroma_collection
 
     api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        raise RuntimeError("GEMINI_API_KEY environment variable not set.")
-    genai_client = genai.Client(api_key=api_key)
+    if api_key:
+        genai_client = genai.Client(api_key=api_key)
+    else:
+        print("WARNING: GEMINI_API_KEY environment variable not set. Rule-based matching will work; Gemini AI features require setting GEMINI_API_KEY.")
 
     if not DATA_FILE.exists():
         raise RuntimeError(f"{DATA_FILE} not found.")
@@ -206,12 +207,19 @@ class ChatRequest(BaseModel):
     question: str
     persona: Optional[str] = None  # "MSME" | "NGO" — optional filter
     slug: Optional[str] = None     # optional: restrict retrieval to one specific scheme
+    language: Optional[str] = "en" # "en" | "hi"
 
 
 @app.post("/api/chat")
 def chat_endpoint(req: ChatRequest):
     if not req.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
+
+    if not genai_client:
+        raise HTTPException(
+            status_code=503,
+            detail="GEMINI_API_KEY is not set. Please set the GEMINI_API_KEY environment variable to use AI chat."
+        )
 
     embed_result = genai_client.models.embed_content(model=EMBED_MODEL, contents=req.question)
     query_vector = embed_result.embeddings[0].values
@@ -239,7 +247,11 @@ def chat_endpoint(req: ChatRequest):
     ]
 
     context = "\n\n---\n\n".join(c["text"] for c in retrieved)
-    prompt = f"{SYSTEM_INSTRUCTION}\n\nCONTEXT:\n{context}\n\nQUESTION: {req.question}\n\nANSWER:"
+    lang_instruction = ""
+    if req.language == "hi":
+        lang_instruction = "\n- Answer in clear, polite Hindi (Devanagari script). Scheme names may be kept in English or transliterated with English in parentheses."
+
+    prompt = f"{SYSTEM_INSTRUCTION}{lang_instruction}\n\nCONTEXT:\n{context}\n\nQUESTION: {req.question}\n\nANSWER:"
 
     response = genai_client.models.generate_content(
         model=CHAT_MODEL, contents=prompt, config=types.GenerateContentConfig(temperature=0.2),
@@ -266,6 +278,7 @@ def get_scheme(slug: str):
 class AdvisorRequest(BaseModel):
     profile: Profile
     question: Optional[str] = None  # if omitted, advisor gives a general prioritized recommendation
+    language: Optional[str] = "en" # "en" | "hi"
 
 
 @app.post("/api/advisor")
@@ -277,6 +290,7 @@ def advisor_endpoint(req: AdvisorRequest):
         genai_client=genai_client,
         chroma_collection=chroma_collection,
         check_match_fn=check_match,
+        language=req.language or "en",
     )
     return result
 

@@ -1,20 +1,24 @@
 import { useEffect, useRef, useState } from "react";
 import EvidenceChip from "./EvidenceChip.jsx";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 // Orbiting SVG nodes — each represents a scheme category matching to
 // the profile at the centre. Pure SVG, no deps.
 function OrbitField() {
+  const { t } = useLanguage();
+
   const nodes = [
-    { r: 90,  size: 8,  delay: 0,   label: "MSME" },
-    { r: 90,  size: 6,  delay: -8,  label: "Credit" },
-    { r: 90,  size: 10, delay: -18, label: "Subsidy" },
-    { r: 140, size: 6,  delay: -4,  label: "NGO" },
-    { r: 140, size: 8,  delay: -14, label: "Skills" },
-    { r: 140, size: 5,  delay: -24, label: "Export" },
-    { r: 190, size: 7,  delay: -2,  label: "Grant" },
-    { r: 190, size: 5,  delay: -12, label: "Rural" },
-    { r: 190, size: 9,  delay: -22, label: "Women" },
+    { r: 90,  size: 8,  delay: 0,   label: t("orbit_msme") },
+    { r: 90,  size: 6,  delay: -8,  label: t("orbit_credit") },
+    { r: 90,  size: 10, delay: -18, label: t("orbit_subsidy") },
+    { r: 140, size: 6,  delay: -4,  label: t("orbit_ngo") },
+    { r: 140, size: 8,  delay: -14, label: t("orbit_skills") },
+    { r: 140, size: 5,  delay: -24, label: t("orbit_export") },
+    { r: 190, size: 7,  delay: -2,  label: t("orbit_grant") },
+    { r: 190, size: 5,  delay: -12, label: t("orbit_rural") },
+    { r: 190, size: 9,  delay: -22, label: t("orbit_women") },
   ];
+
   return (
     <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
       <div className="relative h-[440px] w-[440px]">
@@ -58,7 +62,7 @@ function OrbitField() {
         {/* centre profile node */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
           <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-jade to-emerald text-mint shadow-[0_20px_50px_-15px_rgba(14,79,63,0.6)]">
-            <span className="font-display text-2xl">You</span>
+            <span className="font-display text-2xl">{t("orbit_you")}</span>
             <span className="absolute inset-0 rounded-full sn-animate-pulse-ring" />
           </div>
         </div>
@@ -68,22 +72,21 @@ function OrbitField() {
 }
 
 function AnimatedHeadline() {
-  const line1 = "4,000+ government schemes exist.";
-  const line2 = "Let's find the ones";
-  const line3 = "you actually qualify for.";
+  const { t } = useLanguage();
+
   return (
     <h1 className="font-display text-[42px] font-light leading-[1.05] tracking-tight text-ink sm:text-[64px]">
       <span className="block sn-animate-fade-up" style={{ animationDelay: "80ms" }}>
-        {line1}
+        {t("headline_1")}
       </span>
       <span className="block sn-animate-fade-up" style={{ animationDelay: "240ms" }}>
-        {line2}
+        {t("headline_2")}
       </span>
       <span
         className="block sn-gradient-text font-semibold italic sn-animate-fade-up"
         style={{ animationDelay: "400ms" }}
       >
-        {line3}
+        {t("headline_3")}
       </span>
     </h1>
   );
@@ -125,6 +128,8 @@ function MagneticButton({ children, onClick }) {
 
 export default function Landing({ onStart }) {
   const [mounted, setMounted] = useState(false);
+  const { t } = useLanguage();
+
   useEffect(() => setMounted(true), []);
 
   return (
@@ -150,7 +155,7 @@ export default function Landing({ onStart }) {
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald/30 bg-paper/70 px-3 py-1.5 backdrop-blur">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-gold" />
             <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-jade">
-              Government scheme discovery, simplified
+              {t("badge_hero")}
             </span>
           </div>
 
@@ -160,29 +165,27 @@ export default function Landing({ onStart }) {
             className="mt-8 max-w-xl text-[17px] leading-relaxed text-muted sn-animate-fade-up"
             style={{ animationDelay: "560ms" }}
           >
-            Answer a few questions about your business or NGO. We match you
-            against real eligibility criteria, explain exactly why you qualify,
-            and answer follow-up questions grounded in the official scheme text.
+            {t("landing_description")}
           </p>
 
           <div
             className="mt-8 flex flex-wrap items-center gap-2 sn-animate-fade-up"
             style={{ animationDelay: "720ms" }}
           >
-            <EvidenceChip kind="check" delay={800}>Rule-based eligibility</EvidenceChip>
-            <EvidenceChip kind="check" delay={900}>Cites official sources</EvidenceChip>
-            <EvidenceChip kind="unknown" delay={1000}>Flags what we can't verify</EvidenceChip>
+            <EvidenceChip kind="check" delay={800}>{t("chip_rule")}</EvidenceChip>
+            <EvidenceChip kind="check" delay={900}>{t("chip_sources")}</EvidenceChip>
+            <EvidenceChip kind="unknown" delay={1000}>{t("chip_verify")}</EvidenceChip>
           </div>
 
           <div className="mt-10 flex flex-wrap items-center gap-6 sn-animate-fade-up" style={{ animationDelay: "880ms" }}>
-            <MagneticButton onClick={onStart}>Find my schemes</MagneticButton>
+            <MagneticButton onClick={onStart}>{t("btn_find_schemes")}</MagneticButton>
             <div className="flex items-center gap-3 text-xs text-muted">
               <div className="flex -space-x-1.5">
                 {["#0E4F3F","#17876B","#C9A24B"].map((c) => (
                   <span key={c} className="h-6 w-6 rounded-full border-2 border-paper" style={{ background: c }} />
                 ))}
               </div>
-              <span>MSMEs · NGOs · Startups across 28 states</span>
+              <span>{t("landing_subtext")}</span>
             </div>
           </div>
         </div>
@@ -196,10 +199,10 @@ export default function Landing({ onStart }) {
       <div className="relative mx-auto max-w-6xl border-t border-ink/5 px-6 py-6">
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
           {[
-            ["4,000+", "schemes indexed"],
-            ["28", "states covered"],
-            ["0", "fabricated scores"],
-            ["100%", "sourced from myScheme.gov.in"],
+            ["4,000+", t("stat_schemes")],
+            ["28", t("stat_states")],
+            ["0", t("stat_scores")],
+            ["100%", t("stat_sourced")],
           ].map(([n, l]) => (
             <div key={l}>
               <div className="font-display text-2xl text-jade">{n}</div>

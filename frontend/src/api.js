@@ -19,18 +19,23 @@ async function request(path, options = {}) {
   return res.json();
 }
 
-export const getAdvisor = (profile, question) =>
+export const getAdvisor = (profile, question, language = "en") =>
   request("/api/advisor", {
     method: "POST",
-    body: JSON.stringify({ profile, question: question || null }),
+    body: JSON.stringify({ profile, question: question || null, language: language || "en" }),
   });
 
 export const getSchemeDetail = (slug) => request(`/api/schemes/${slug}`);
 
-export const askChat = (question, { slug, persona } = {}) =>
+export const askChat = (question, { slug, persona, language = "en" } = {}) =>
   request("/api/chat", {
     method: "POST",
-    body: JSON.stringify({ question, slug: slug || null, persona: persona || null }),
+    body: JSON.stringify({
+      question,
+      slug: slug || null,
+      persona: persona || null,
+      language: language || "en",
+    }),
   });
 
 export const checkHealth = () => request("/api/health");

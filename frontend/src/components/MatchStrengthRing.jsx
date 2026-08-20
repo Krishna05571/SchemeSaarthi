@@ -1,21 +1,23 @@
 import { useEffect, useState } from "react";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 // Categorical, never a percentage. Ring visualisation is for feel only —
 // the label ("Strong / Good / Possible match") is the source of truth.
 // NOTE: `score` here is match_strength — an integer count of confirmed
 // eligibility criteria from the rule engine, NOT a normalized 0-1 probability.
-function classify(score) {
-  if (typeof score !== "number") return { label: "Possible match", tier: 1 };
-  if (score >= 4) return { label: "Strong match", tier: 3 };
-  if (score >= 2) return { label: "Good match", tier: 2 };
-  return { label: "Possible match", tier: 1 };
+function classify(score, t) {
+  if (typeof score !== "number") return { label: t("possible_match"), tier: 1 };
+  if (score >= 4) return { label: t("strong_match"), tier: 3 };
+  if (score >= 2) return { label: t("good_match"), tier: 2 };
+  return { label: t("possible_match"), tier: 1 };
 }
 
 const TIER_ARC = { 1: 0.34, 2: 0.66, 3: 1 };
 const TIER_COLOR = { 1: "#17876B", 2: "#0E4F3F", 3: "#C9A24B" };
 
 export default function MatchStrengthRing({ score, size = 64, showLabel = true }) {
-  const { label, tier } = classify(score);
+  const { t } = useLanguage();
+  const { label, tier } = classify(score, t);
   const stroke = 5;
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;

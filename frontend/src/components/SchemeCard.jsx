@@ -1,16 +1,18 @@
 import { useRef, useState } from "react";
 import EvidenceChip from "./EvidenceChip.jsx";
 import MatchStrengthRing from "./MatchStrengthRing.jsx";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
-function strengthLabel(s) {
+function strengthLabel(s, t) {
   // s is match_strength — an integer count of confirmed criteria, not a 0-1 probability.
-  if (typeof s !== "number") return { text: "Possible match", color: "#17876B" };
-  if (s >= 4) return { text: "Strong match", color: "#C9A24B" };
-  if (s >= 2) return { text: "Good match", color: "#0E4F3F" };
-  return { text: "Possible match", color: "#17876B" };
+  if (typeof s !== "number") return { text: t("possible_match"), color: "#17876B" };
+  if (s >= 4) return { text: t("strong_match"), color: "#C9A24B" };
+  if (s >= 2) return { text: t("good_match"), color: "#0E4F3F" };
+  return { text: t("possible_match"), color: "#17876B" };
 }
 
 export default function SchemeCard({ scheme, onSelect, index = 0 }) {
+  const { t, translateCriteria } = useLanguage();
   const ref = useRef(null);
   const [expanded, setExpanded] = useState(false);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
@@ -62,14 +64,18 @@ export default function SchemeCard({ scheme, onSelect, index = 0 }) {
 
         <div className="mb-4">
           <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
-            Why you match
+            {t("why_match")}
           </div>
           <div className="flex flex-wrap gap-1.5">
             {reasons.slice(0, expanded ? undefined : previewChips).map((r, i) => (
-              <EvidenceChip key={`r-${i}`} kind="check" delay={i * 60}>{r}</EvidenceChip>
+              <EvidenceChip key={`r-${i}`} kind="check" delay={i * 60}>
+                {translateCriteria(r)}
+              </EvidenceChip>
             ))}
             {unverified.slice(0, expanded ? undefined : Math.max(0, previewChips - reasons.length)).map((r, i) => (
-              <EvidenceChip key={`u-${i}`} kind="unknown" delay={(reasons.length + i) * 60}>{r}</EvidenceChip>
+              <EvidenceChip key={`u-${i}`} kind="unknown" delay={(reasons.length + i) * 60}>
+                {translateCriteria(r)}
+              </EvidenceChip>
             ))}
             {(reasons.length + unverified.length) > previewChips && !expanded && (
               <button
@@ -77,7 +83,7 @@ export default function SchemeCard({ scheme, onSelect, index = 0 }) {
                 onClick={(e) => { e.stopPropagation(); setExpanded(true); }}
                 className="rounded-full border border-dashed border-emerald/40 px-2.5 py-1 text-xs font-medium text-emerald hover:bg-mist"
               >
-                +{reasons.length + unverified.length - previewChips} more
+                {t("more_chips", { count: reasons.length + unverified.length - previewChips })}
               </button>
             )}
           </div>
@@ -91,7 +97,7 @@ export default function SchemeCard({ scheme, onSelect, index = 0 }) {
 
         <div className="flex items-center justify-between border-t border-ink/5 pt-4">
           {(() => {
-            const l = strengthLabel(scheme.match_strength);
+            const l = strengthLabel(scheme.match_strength, t);
             return (
               <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider" style={{ color: l.color }}>
                 <span className="h-1.5 w-1.5 rounded-full" style={{ background: l.color }} />
@@ -104,7 +110,7 @@ export default function SchemeCard({ scheme, onSelect, index = 0 }) {
             onClick={() => onSelect?.(scheme)}
             className="group/btn inline-flex items-center gap-1.5 rounded-xl bg-ink px-4 py-2 text-xs font-semibold text-paper transition-all hover:bg-jade"
           >
-            View details
+            {t("btn_view_details")}
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="transition-transform group-hover/btn:translate-x-0.5">
               <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>

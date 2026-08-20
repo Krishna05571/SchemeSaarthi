@@ -1,15 +1,36 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLanguage } from "../context/LanguageContext.jsx";
+import { SECTOR_TRANSLATIONS, STATE_TRANSLATIONS } from "../locales/translations.js";
 
-const ENTITY_TYPES = ["MSME", "NGO", "Individual", "Startup"];
-const BUSINESS_STAGES = ["Idea", "Registered", "Operational", "Scaling"];
+const ENTITY_CONFIG = [
+  { key: "MSME", tKey: "entity_msme" },
+  { key: "NGO", tKey: "entity_ngo" },
+  { key: "Individual", tKey: "entity_individual" },
+  { key: "Startup", tKey: "entity_startup" },
+];
+
+const STAGE_CONFIG = [
+  { key: "Idea", tKey: "stage_idea" },
+  { key: "Registered", tKey: "stage_registered" },
+  { key: "Operational", tKey: "stage_operational" },
+  { key: "Scaling", tKey: "stage_scaling" },
+];
+
 const SECTORS = [
   "Agriculture", "Manufacturing", "Services", "Handicrafts",
   "Education", "Healthcare", "Technology", "Retail", "Textiles", "Other",
 ];
+
 const STATES = [
   "Andhra Pradesh","Assam","Bihar","Delhi","Gujarat","Haryana","Karnataka",
   "Kerala","Madhya Pradesh","Maharashtra","Odisha","Punjab","Rajasthan",
   "Tamil Nadu","Telangana","Uttar Pradesh","Uttarakhand","West Bengal",
+];
+
+const GENDERS = [
+  { key: "Female", tKey: "gender_female" },
+  { key: "Male", tKey: "gender_male" },
+  { key: "Other", tKey: "gender_other" },
 ];
 
 function Segmented({ label, options, value, onChange, required }) {
@@ -22,12 +43,12 @@ function Segmented({ label, options, value, onChange, required }) {
       </div>
       <div className="flex flex-wrap gap-2">
         {options.map((opt) => {
-          const active = value === opt;
+          const active = value === opt.key;
           return (
             <button
-              key={opt}
+              key={opt.key}
               type="button"
-              onClick={() => onChange(opt)}
+              onClick={() => onChange(opt.key)}
               className={[
                 "rounded-xl border px-4 py-2 text-sm font-medium transition-all",
                 active
@@ -35,7 +56,7 @@ function Segmented({ label, options, value, onChange, required }) {
                   : "border-ink/10 bg-paper text-ink hover:border-emerald hover:-translate-y-0.5",
               ].join(" ")}
             >
-              {opt}
+              {opt.label}
             </button>
           );
         })}
@@ -59,6 +80,7 @@ const inputCls =
   "w-full rounded-xl border border-ink/10 bg-paper px-4 py-3 text-sm text-ink placeholder:text-muted/70 focus:border-emerald focus:outline-none focus:ring-2 focus:ring-emerald/25 transition";
 
 export default function ProfileForm({ onSubmit, loading, prefill }) {
+  const { t, language, isHindi } = useLanguage();
   const [profile, setProfile] = useState({
     entity_type: "",
     gender: "",
@@ -96,12 +118,37 @@ export default function ProfileForm({ onSubmit, loading, prefill }) {
     onSubmit(payload);
   };
 
-  const summary = [
-    profile.entity_type && `${profile.entity_type}`,
-    profile.business_stage && `${profile.business_stage.toLowerCase()} stage`,
-    profile.sector && `in ${profile.sector.toLowerCase()}`,
-    profile.state && `from ${profile.state}`,
-  ].filter(Boolean).join(" · ");
+  const summary = useMemo(() => {
+    const parts = [];
+    if (profile.entity_type) {
+      const match = ENTITY_CONFIG.find((e) => e.key === profile.entity_type);
+      parts.push(match ? t(match.tKey) : profile.entity_type);
+    }
+    if (profile.business_stage) {
+      const match = STAGE_CONFIG.find((s) => s.key === profile.business_stage);
+      const stageName = match ? t(match.tKey) : profile.business_stage;
+      parts.push(isHindi ? `${stageName} ${t("stage_suffix")}` : `${profile.business_stage.toLowerCase()} ${t("stage_suffix")}`);
+    }
+    if (profile.sector) {
+      const secName = SECTOR_TRANSLATIONS[profile.sector]?.[language] || profile.sector;
+      parts.push(isHindi ? `${secName} ${t("in_sector_prefix")}` : `${t("in_sector_prefix")} ${profile.sector.toLowerCase()}`);
+    }
+    if (profile.state) {
+      const stateName = STATE_TRANSLATIONS[profile.state]?.[language] || profile.state;
+      parts.push(isHindi ? `${stateName} ${t("from_state_prefix")}` : `${t("from_state_prefix")} ${profile.state}`);
+    }
+    return parts.join(" · ");
+  }, [profile, language, isHindi, t]);
+
+  const entityOptions = useMemo(
+    () => ENTITY_CONFIG.map((e) => ({ key: e.key, label: t(e.tKey) })),
+    [t]
+  );
+
+  const stageOptions = useMemo(
+    () => STAGE_CONFIG.map((s) => ({ key: s.key, label: t(s.tKey) })),
+    [t]
+  );
 
   return (
     <form onSubmit={submit} className="space-y-8">
@@ -110,17 +157,17 @@ export default function ProfileForm({ onSubmit, loading, prefill }) {
         <div className="flex items-start justify-between gap-4">
           <div>
             <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.2em] text-emerald">
-              Live profile
+              {t("live_profile")}
             </div>
             <div className="font-display text-lg text-ink">
-              {summary || "Fill in the details below to see your profile take shape."}
+              {summary || t("live_profile_empty")}
             </div>
           </div>
           <div className="shrink-0 text-right">
             <div className="font-display text-2xl text-jade">
               {filled}<span className="text-muted">/{total}</span>
             </div>
-            <div className="text-[10px] uppercase tracking-wider text-muted">fields filled</div>
+            <div className="text-[10px] uppercase tracking-wider text-muted">{t("fields_filled")}</div>
           </div>
         </div>
         <div className="mt-3 h-1 overflow-hidden rounded-full bg-ink/5">
@@ -132,27 +179,28 @@ export default function ProfileForm({ onSubmit, loading, prefill }) {
       </div>
 
       <Segmented
-        label="How are you registering?"
-        options={ENTITY_TYPES}
+        label={t("lbl_registering")}
+        options={entityOptions}
         value={profile.entity_type}
         onChange={(v) => update("entity_type", v)}
         required
       />
 
       <Segmented
-        label="Business stage"
-        options={BUSINESS_STAGES}
+        label={t("lbl_business_stage")}
+        options={stageOptions}
         value={profile.business_stage}
         onChange={(v) => update("business_stage", v)}
       />
 
       <div>
         <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted">
-          Sector
+          {t("lbl_sector")}
         </label>
         <div className="flex flex-wrap gap-2">
           {SECTORS.map((s) => {
             const active = profile.sector === s;
+            const label = SECTOR_TRANSLATIONS[s]?.[language] || s;
             return (
               <button
                 key={s}
@@ -165,7 +213,7 @@ export default function ProfileForm({ onSubmit, loading, prefill }) {
                     : "border-ink/10 bg-paper text-muted hover:border-emerald hover:text-ink",
                 ].join(" ")}
               >
-                {s}
+                {label}
               </button>
             );
           })}
@@ -173,49 +221,55 @@ export default function ProfileForm({ onSubmit, loading, prefill }) {
       </div>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <Field label="State">
+        <Field label={t("lbl_state")}>
           <select
             value={profile.state}
             onChange={(e) => update("state", e.target.value)}
             className={inputCls}
           >
-            <option value="">Select a state</option>
-            {STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+            <option value="">{t("select_state")}</option>
+            {STATES.map((s) => (
+              <option key={s} value={s}>
+                {STATE_TRANSLATIONS[s]?.[language] || s}
+              </option>
+            ))}
           </select>
         </Field>
 
-        <Field label="Gender">
+        <Field label={t("lbl_gender")}>
           <div className="flex gap-2">
-            {["Female", "Male", "Other"].map((g) => {
-              const active = profile.gender === g;
+            {GENDERS.map((g) => {
+              const active = profile.gender === g.key;
               return (
                 <button
-                  key={g}
+                  key={g.key}
                   type="button"
-                  onClick={() => update("gender", g)}
+                  onClick={() => update("gender", g.key)}
                   className={[
                     "flex-1 rounded-xl border px-3 py-3 text-sm transition-all",
                     active
                       ? "border-jade bg-jade text-paper"
                       : "border-ink/10 bg-paper text-ink hover:border-emerald",
                   ].join(" ")}
-                >{g}</button>
+                >
+                  {t(g.tKey)}
+                </button>
               );
             })}
           </div>
         </Field>
 
-        <Field label="Age">
+        <Field label={t("lbl_age")}>
           <input
             type="number" min="14" max="100"
             value={profile.age}
             onChange={(e) => update("age", e.target.value)}
             className={inputCls}
-            placeholder="e.g. 34"
+            placeholder={t("ph_age")}
           />
         </Field>
 
-        <Field label="Annual income (INR)">
+        <Field label={t("lbl_income")}>
           <div className="relative">
             <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 font-mono text-sm text-muted">₹</span>
             <input
@@ -223,7 +277,7 @@ export default function ProfileForm({ onSubmit, loading, prefill }) {
               value={profile.annual_income_inr}
               onChange={(e) => update("annual_income_inr", e.target.value)}
               className={inputCls + " pl-8"}
-              placeholder="e.g. 800000"
+              placeholder={t("ph_income")}
             />
           </div>
         </Field>
@@ -238,11 +292,11 @@ export default function ProfileForm({ onSubmit, loading, prefill }) {
           {loading ? (
             <>
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-paper/30 border-t-paper" />
-              Matching your profile…
+              {t("btn_matching")}
             </>
           ) : (
             <>
-              Match my schemes
+              {t("btn_match")}
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>

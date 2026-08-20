@@ -8,8 +8,9 @@ import SchemeDetail from "./components/SchemeDetail.jsx";
 import AdvisorPanel from "./components/AdvisorPanel.jsx";
 import ChatWidget from "./components/ChatWidget.jsx";
 import { getAdvisor } from "./api.js";
+import { LanguageProvider, useLanguage } from "./context/LanguageContext.jsx";
 
-export default function App() {
+function AppContent() {
   const [screen, setScreen] = useState("landing"); // landing | form | results | detail
   const [profile, setProfile] = useState(null);
   const [prefill, setPrefill] = useState(null);
@@ -18,12 +19,14 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const { t, language, isHindi } = useLanguage();
+
   const handleProfileSubmit = async (submittedProfile) => {
     setProfile(submittedProfile);
     setLoading(true);
     setError(null);
     try {
-      const result = await getAdvisor(submittedProfile);
+      const result = await getAdvisor(submittedProfile, null, language);
       setAdvisorResult(result);
       setScreen("results");
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -47,14 +50,15 @@ export default function App() {
         {screen === "form" && (
           <div className="mx-auto max-w-2xl px-6 py-14 sn-animate-fade-up">
             <div className="mb-2 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-emerald">
-              Step 1 of 2 · Profile
+              {t("step_profile")}
             </div>
             <h2 className="mb-3 text-center font-display text-4xl leading-tight text-ink">
-              Tell us about your <span className="sn-gradient-text font-semibold italic">business or NGO</span>
+              {t("form_title_pre")}
+              <span className="sn-gradient-text font-semibold italic">{t("form_title_highlight")}</span>
+              {isHindi ? " के बारे में बताएं" : ""}
             </h2>
             <p className="mb-10 text-center text-sm leading-relaxed text-muted">
-              The more you share, the more precise your matches — but every field
-              below is optional except how you're registering.
+              {t("form_subtitle")}
             </p>
             <DocumentUpload onExtracted={setPrefill} />
             <ProfileForm onSubmit={handleProfileSubmit} loading={loading} prefill={prefill} />
@@ -74,7 +78,7 @@ export default function App() {
               className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-emerald hover:text-jade"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              Edit your profile
+              {t("btn_edit_profile")}
             </button>
 
             <div className="mb-8">
@@ -87,18 +91,20 @@ export default function App() {
             <div className="mb-6 flex items-baseline justify-between">
               <h2 className="font-display text-3xl text-ink">
                 <span className="sn-gradient-text font-semibold">{advisorResult.eligible_schemes.length}</span>{" "}
-                eligible scheme{advisorResult.eligible_schemes.length === 1 ? "" : "s"}
+                {isHindi
+                  ? "पात्र योजनाएं"
+                  : `eligible scheme${advisorResult.eligible_schemes.length === 1 ? "" : "s"}`}
               </h2>
               <span className="font-mono text-[11px] uppercase tracking-wider text-muted">
-                Sorted by match strength
+                {t("sorted_by")}
               </span>
             </div>
 
             {advisorResult.eligible_schemes.length === 0 ? (
               <div className="rounded-2xl border border-ink/6 bg-card p-8 text-center">
-                <div className="font-display text-lg text-ink">No exact matches — yet</div>
+                <div className="font-display text-lg text-ink">{t("no_matches_title")}</div>
                 <p className="mt-2 text-sm text-muted">
-                  Try adjusting your sector or business stage. Small changes can unlock several schemes.
+                  {t("no_matches_desc")}
                 </p>
               </div>
             ) : (
@@ -120,7 +126,7 @@ export default function App() {
 
             <ChatWidget
               persona={chatPersona}
-              title="Ask about your eligible schemes"
+              title={t("chat_results_title")}
             />
           </div>
         )}
@@ -132,9 +138,17 @@ export default function App() {
 
       <footer className="mt-20 border-t border-ink/5 py-8 text-center text-xs text-muted">
         <span className="font-mono uppercase tracking-[0.2em]">
-          Scheme Navigator · Grounded in myScheme.gov.in
+          {t("footer_text")}
         </span>
       </footer>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
   );
 }

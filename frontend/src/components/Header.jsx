@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 export default function Header({ onLogoClick }) {
   const [scrolled, setScrolled] = useState(false);
+  const { language, setLanguage, t } = useLanguage();
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -24,22 +27,59 @@ export default function Header({ onLogoClick }) {
           aria-label="Go home"
         >
           <span className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-jade text-mint shadow-[0_6px_20px_-6px_rgba(14,79,63,0.55)] transition-transform group-hover:-translate-y-0.5">
-            <span className="font-mono text-[11px] font-semibold tracking-tight">SN</span>
+            <span className="font-mono text-[11px] font-semibold tracking-tight">SS</span>
             <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-gold/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
           </span>
-          <span className="flex flex-col leading-tight">
+          <span className="flex flex-col text-left leading-tight">
             <span className="font-display text-[15px] font-semibold text-ink">
-              Scheme Navigator
+              {t("app_title")}
             </span>
             <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
-              India · MSME · NGO
+              {t("app_subtitle")}
             </span>
           </span>
         </button>
-        <span className="hidden items-center gap-2 text-xs text-muted sm:flex">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald" />
-          Grounded in myScheme.gov.in
-        </span>
+
+        <div className="flex items-center gap-4">
+          <span className="hidden items-center gap-2 text-xs text-muted sm:flex">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald" />
+            {t("grounded_in")}
+          </span>
+
+          {/* Language Switcher Toggle */}
+          <div
+            className="flex items-center rounded-xl border border-ink/10 bg-paper/90 p-1 shadow-sm backdrop-blur"
+            role="group"
+            aria-label="Language selection"
+          >
+            <button
+              type="button"
+              onClick={() => setLanguage("en")}
+              className={[
+                "rounded-lg px-2.5 py-1 text-xs font-semibold transition-all duration-200",
+                language === "en"
+                  ? "bg-jade text-paper shadow-sm"
+                  : "text-muted hover:text-ink",
+              ].join(" ")}
+              aria-pressed={language === "en"}
+            >
+              EN
+            </button>
+            <button
+              type="button"
+              onClick={() => setLanguage("hi")}
+              className={[
+                "rounded-lg px-2.5 py-1 text-xs font-semibold transition-all duration-200",
+                language === "hi"
+                  ? "bg-jade text-paper shadow-sm"
+                  : "text-muted hover:text-ink",
+              ].join(" ")}
+              aria-pressed={language === "hi"}
+            >
+              हिन्दी
+            </button>
+          </div>
+        </div>
       </div>
     </header>
   );

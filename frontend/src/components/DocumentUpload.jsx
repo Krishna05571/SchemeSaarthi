@@ -1,7 +1,9 @@
 import { useRef, useState } from "react";
 import { uploadDocument } from "../api.js";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 export default function DocumentUpload({ onExtracted }) {
+  const { t } = useLanguage();
   const [dragging, setDragging] = useState(false);
   const [file, setFile] = useState(null);
   const [status, setStatus] = useState("idle"); // idle | parsing | done | error
@@ -34,7 +36,7 @@ export default function DocumentUpload({ onExtracted }) {
       <div className="mb-3 flex items-center gap-2">
         <div className="h-px flex-1 bg-ink/10" />
         <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
-          Optional shortcut
+          {t("shortcut_label")}
         </span>
         <div className="h-px flex-1 bg-ink/10" />
       </div>
@@ -78,14 +80,14 @@ export default function DocumentUpload({ onExtracted }) {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-semibold text-ink">
-                  Drop a registration document to auto-fill
+                  {t("drop_title")}
                 </div>
                 <div className="text-xs text-muted">
-                  Udyam certificate, NGO Darpan, PAN, or any registration PDF. We extract the fields.
+                  {t("drop_sub")}
                 </div>
               </div>
               <span className="rounded-lg border border-ink/10 bg-paper px-3 py-1.5 text-[11px] font-medium text-jade">
-                Browse
+                {t("btn_browse")}
               </span>
             </div>
           )}
@@ -94,7 +96,7 @@ export default function DocumentUpload({ onExtracted }) {
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm text-jade">
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-emerald/30 border-t-emerald" />
-                Reading <span className="font-mono">{file?.name}</span>…
+                {t("reading_file")} <span className="font-mono">{file?.name}</span>…
               </div>
               <div className="space-y-2">
                 {[70, 45, 60].map((w, i) => (
@@ -114,8 +116,8 @@ export default function DocumentUpload({ onExtracted }) {
                 </svg>
               </div>
               <div>
-                <div className="text-sm font-semibold text-ink">Extracted — form pre-filled below</div>
-                <div className="text-xs text-muted">{file?.name} · review and adjust as needed</div>
+                <div className="text-sm font-semibold text-ink">{t("extracted_success")}</div>
+                <div className="text-xs text-muted">{file?.name} · {t("extracted_sub")}</div>
               </div>
             </div>
           )}
@@ -124,8 +126,8 @@ export default function DocumentUpload({ onExtracted }) {
             <div className="flex items-start gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-coral/10 text-coral">!</div>
               <div>
-                <div className="text-sm font-semibold text-coral">Couldn't parse this file</div>
-                <div className="text-xs text-muted">{error} — you can fill the form manually below.</div>
+                <div className="text-sm font-semibold text-coral">{t("error_parse_title")}</div>
+                <div className="text-xs text-muted">{error} — {t("error_parse_sub")}</div>
               </div>
             </div>
           )}
