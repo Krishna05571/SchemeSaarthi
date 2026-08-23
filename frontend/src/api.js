@@ -1,5 +1,4 @@
-const BASE_URL = "http://127.0.0.1:8000";
-
+const BASE_URL = "https://schemesaarthi.onrender.com/";
 async function request(path, options = {}) {
   let res;
   try {
