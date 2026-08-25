@@ -1,4 +1,4 @@
-const BASE_URL = "https://schemesaarthi.onrender.com/";
+const BASE_URL = "https://schemesaarthi.onrender.com";
 async function request(path, options = {}) {
   let res;
   try {

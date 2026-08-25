@@ -52,7 +52,8 @@ app = FastAPI(title="AI Government Scheme Navigator API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # tighten this to your frontend's actual origin before deploying publicly
+    allow_origins=["*"],  # or your Vercel URL
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -324,3 +325,7 @@ async def document_endpoint(file: UploadFile = File(...)):
 @app.get("/api/health")
 def health():
     return {"status": "ok", "schemes_loaded": len(schemes)}
+
+@app.get("/")
+def root():
+    return {"message": "Backend is running 🚀"}
